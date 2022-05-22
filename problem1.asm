@@ -1,0 +1,83 @@
+.MODEL SMALL
+.STACK 100H
+
+.DATA
+LF EQU 0AH
+CR EQU 0DH
+MSG DB 'PLEASE ENTER A NUMBER: $' ;PROPMT MESSAGE
+RESULT DB 'RESULT (X-2Y): $'
+X DB ?                          ;NEED THREE VARIABLE TO CALCULATE
+Y DB ?
+Z DB ?
+
+.CODE
+;MAIN PROCEDURE
+MAIN PROC
+    ;INITIALIZE DATA TO DS REGISTER
+    MOV AX, @DATA
+    MOV DS, AX
+
+    ;MOVE DL TO POINT TO START OF THE STRING
+    LEA DX, MSG
+    ;SHOW PROMPT MESSAGE
+    MOV AH, 9
+    INT 21H
+    ;TAKE THE INPUT IN X
+    MOV AH, 1
+    INT 21H
+    SUB AL, '0'
+    MOV X, AL
+
+    ;PRINT NEW LINE
+    MOV DL, LF
+    MOV AH, 2
+    INT 21H
+    MOV DL, CR
+    INT 21H
+
+    LEA DX, MSG
+    ;SHOW PROMPT MESSAGE
+    MOV AH, 9
+    INT 21H
+
+    ;TAKE THE INPUT IN Y
+    MOV AH, 1
+    INT 21H
+    SUB AL, '0'
+    MOV Y, AL
+    
+    ; CALCULATE 2Y
+    MOV AH, 0
+    MOV AL, Y
+    MOV BL, 2
+    MUL BL
+
+    ;CALCULATE Z
+    MOV BH, 0
+    MOV BL, X
+    SUB BX, AX
+    MOV DX, BX
+    ADD DL, '0'
+    MOV Z, DL
+
+    ;PRINT NEW LINE
+    MOV DL, LF
+    MOV AH, 2
+    INT 21H
+    MOV DL, CR
+    INT 21H
+
+    ;PRINT RESULT
+    LEA DX, RESULT
+    MOV AH, 9
+    INT 21H
+
+    MOV DL, Z
+    MOV AH, 2
+    INT 21H
+
+
+    ;RETURN TO DOS
+    MOV AH, 4CH
+    INT 21H 
+MAIN ENDP
