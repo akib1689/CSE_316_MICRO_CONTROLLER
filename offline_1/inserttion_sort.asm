@@ -1,14 +1,14 @@
 .model small
 .stack 100h
 .data
-cr equ 0dh
-lf equ 0ah
+    cr equ 0dh
+    lf equ 0ah
 
-nl db cr,lf,'$'
+    nl db cr,lf,'$'
 
-n dw ?
-arr dw 100 dup(0)
-error_msg db "please enter a number: $"
+    n dw ?
+    arr dw 100 dup(0)
+    error_msg db "please enter a number: $"
 
 .code
 ;main function
@@ -77,20 +77,50 @@ main PROC
             mov bx, ax
             jmp start_n_arr
             end_n_arr:
-        ; pop cx
-        ; mov dx, n
-        ; sub dx, cx
-        ; mov word ptr [si + dx], bx
-        mov [si], bx
-        add si, 2
+        pop cx
+        mov dx, n
+        sub dx, cx
+        xchg dx, bx
+        add bx, bx
+        mov arr[bx], dx
+        ; add si, dx
+        ; mov [si], bx
+        ; sub si,dx
+        ; mov [si], bx
+        ; add si, 2
         ;print line feed
         mov ah, 2
         mov dl, lf
         int 21h 
-        pop cx
+        ; pop cx
     loop top
     
-    
+    mov cx, n
+    lea si, arr
+    insertion_sort_loop_top:
+        push cx
+        dec cx
+        mov bx, n
+        sub bx, cx  ;bx-> i=1 to n
+        mov dx, bx  
+        dec dx      ;dx = bx - 1
+        add bx, bx
+        mov ax, arr[bx]
+        inner_loop_top:
+            mov bx, dx
+            add bx, bx
+            mov cx, arr[bx]
+            cmp cx, ax
+            jng inner_loop_exit
+            dec dx
+            jnz inner_loop_top
+        inner_loop_exit:
+        mov bx, dx
+        add bx, 1
+        add bx, bx
+        mov arr[bx], ax
+        pop cx
+    loop insertion_sort_loop_top
 
     ;return to dos
     mov ah, 4ch
