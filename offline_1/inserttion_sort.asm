@@ -112,6 +112,8 @@ main PROC
             mov cx, arr[bx]
             cmp cx, ax
             jng inner_loop_exit
+            cmp dx, 0
+            je inner_loop_exit
             dec dx
             jnz inner_loop_top
         inner_loop_exit:
