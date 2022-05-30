@@ -3,13 +3,18 @@
 .data
     cr equ 0dh
     lf equ 0ah
-
+    size_msg db "size of the array: $"
+    prompt_msg db "the numbers: $"
+    search_msg db "number to search: $"
+    success_msg db "found position: $"
+    fail_msg db "not found$"
     nl db cr,lf,'$'
-
     n dw ?
-    arr dw 100 dup(0)
-    error_msg db "please enter a number: $"
-
+    search_val dw ?
+    higher dw ?
+    lower dw ?
+    mid dw ?
+    arr dw 20 dup(0)
 .code
 ;main function
 main PROC
@@ -21,9 +26,9 @@ main PROC
     
     
     mov ah, 9
-    mov dl, offset error_msg
+    mov dl, offset size_msg
     int 21h
-    mov bx, 0
+    xor bx, bx
 
     ;take input n
     start_n:
@@ -36,8 +41,7 @@ main PROC
         je end_n
         
         ;now al has proper value
-        mov ah, 0
-        sub al, '0'
+        and ax, 000fh
         mov cx, ax  ;save the value  to cx
         mov ax, 10
         mul bx
@@ -46,18 +50,23 @@ main PROC
         jmp start_n
     end_n:
     mov n, bx
-    mov cx, bx
 
     ;print line feed
     mov ah, 2
     mov dl, lf
     int 21h
 
+    ;print prompt message
+    mov ah, 9
+    mov dl, offset prompt_msg
+    int 21h
     
+    ;this takes n numbers
+    mov cx, n
     top:
         push cx
-        mov bx, 0
-            start_n_arr:
+        xor bx, bx
+        start_n_arr:
             ;take the input
             mov ah, 1
             int 21h
@@ -68,8 +77,7 @@ main PROC
             je end_n_arr
             
             ;now al has proper value
-            mov ah, 0
-            sub al, '0'
+            and ax, 000fh
             mov cx, ax  ;save the value  to cx
             mov ax, 10
             mul bx
@@ -90,6 +98,7 @@ main PROC
         ; pop cx
     loop top
     
+    
     mov cx, n
     lea si, arr
     insertion_sort_loop_top:
@@ -102,15 +111,19 @@ main PROC
         add bx, bx
         mov ax, arr[bx]
         inner_loop_top:
+
             mov bx, dx
             add bx, bx
             mov cx, arr[bx]
-            
+
             cmp dx, 0
             jnge inner_loop_exit
-
             cmp cx, ax
             jng inner_loop_exit
+
+            
+            
+            
             inc dx
             mov bx, dx
             add bx, bx
@@ -128,6 +141,107 @@ main PROC
         cmp cx, 1
     jnle insertion_sort_loop_top
 
+
+    ;print line feed
+    mov ah, 2
+    mov dl, lf
+    int 21h
+
+    ;print prompt message
+    mov ah, 9
+    mov dl, offset search_msg
+    int 21h
+
+    ;now the arr is sorted
+    xor bx, bx
+
+    ;take input search_val
+    start_search:
+        mov ah, 1
+        int 21h
+        ;now the number is in al
+        cmp al, cr
+        je end_search
+        cmp al, lf
+        je end_search
+        
+        ;now al has proper value
+        and ax, 000fh
+        mov cx, ax  ;save the value  to cx
+        mov ax, 10
+        mul bx
+        add ax, cx
+        mov bx, ax
+        jmp start_search
+    end_search:
+    mov search_val, bx
+    
+    ;print line feed
+    mov ah, 2
+    mov dl, lf
+    int 21h
+
+    ;initialize
+    ;cx -> lower
+    ;dx -> higher
+    ;ax -> used for the array element 
+    xor cx, cx
+    mov lower, cx
+    mov dx, n
+    dec dx
+    mov higher, dx
+
+    search_top:
+        mov cx, lower
+        mov dx, higher
+        cmp cx, dx
+        jnle not_found_in_search
+            ;calculate mid
+            ;use bx to find the mid
+            mov bx, cx 
+            add bx, dx  ;bx = lower + higher
+            shr bx,1    ;bx = bx/2
+
+            ;now access the bx element in the array
+            add bx, bx
+            mov ax, arr[bx]
+            cmp ax, search_val
+            je found_in_search
+            jg left_pivot_bin_search
+            jmp right_pivot_bin_search 
+
+        right_pivot_bin_search:
+            inc bx
+            mov lower, bx
+            jmp search_top
+        left_pivot_bin_search:
+            dec bx
+            mov higher, bx
+            jmp search_top 
+
+        found_in_search:
+            ;bx has 2 * the index
+            shr bx, 1
+            ;print msg
+            mov dl, offset success_msg
+            mov ah, 9
+            int 21h
+
+            ;print the index
+            mov dx, bx
+            add dx, '0'
+            mov ah, 2
+            int 21h
+
+
+            jmp end_bin_search
+        not_found_in_search:
+            mov dl, offset fail_msg
+            mov ah, 9
+            int 21h
+            jmp end_bin_search
+    end_bin_search:
+        ;not found
     ;return to dos
     mov ah, 4ch
     int 21h
