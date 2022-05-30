@@ -83,11 +83,6 @@ main PROC
         xchg dx, bx
         add bx, bx
         mov arr[bx], dx
-        ; add si, dx
-        ; mov [si], bx
-        ; sub si,dx
-        ; mov [si], bx
-        ; add si, 2
         ;print line feed
         mov ah, 2
         mov dl, lf
@@ -110,19 +105,28 @@ main PROC
             mov bx, dx
             add bx, bx
             mov cx, arr[bx]
+            
+            cmp dx, 0
+            jnge inner_loop_exit
+
             cmp cx, ax
             jng inner_loop_exit
-            cmp dx, 0
-            je inner_loop_exit
+            inc dx
+            mov bx, dx
+            add bx, bx
+            mov arr[bx], cx
             dec dx
-            jnz inner_loop_top
+            dec dx
+            jmp inner_loop_top
         inner_loop_exit:
         mov bx, dx
         add bx, 1
         add bx, bx
         mov arr[bx], ax
         pop cx
-    loop insertion_sort_loop_top
+        dec cx
+        cmp cx, 1
+    jnle insertion_sort_loop_top
 
     ;return to dos
     mov ah, 4ch
