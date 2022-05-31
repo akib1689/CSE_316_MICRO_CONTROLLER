@@ -26,7 +26,7 @@ main PROC
     
     
     mov ah, 9
-    mov dl, offset size_msg
+    mov dx, offset size_msg
     int 21h
     xor bx, bx
 
@@ -53,12 +53,12 @@ main PROC
 
     ;print line feed
     mov ah, 2
-    mov dl, lf
+    mov dx, lf
     int 21h
 
     ;print prompt message
     mov ah, 9
-    mov dl, offset prompt_msg
+    mov dx, offset prompt_msg
     int 21h
     
     ;this takes n numbers
@@ -93,7 +93,7 @@ main PROC
         mov arr[bx], dx
         ;print line feed
         mov ah, 2
-        mov dl, lf
+        mov dx, lf
         int 21h 
         ; pop cx
     loop top
@@ -112,12 +112,14 @@ main PROC
         mov ax, arr[bx]
         inner_loop_top:
 
+            cmp dx, 0
+            jnge inner_loop_exit
+
             mov bx, dx
             add bx, bx
             mov cx, arr[bx]
 
-            cmp dx, 0
-            jnge inner_loop_exit
+            
             cmp cx, ax
             jng inner_loop_exit
 
@@ -144,12 +146,12 @@ main PROC
 
     ;print line feed
     mov ah, 2
-    mov dl, lf
+    mov dx, lf
     int 21h
 
     ;print prompt message
     mov ah, 9
-    mov dl, offset search_msg
+    mov dx, offset search_msg
     int 21h
 
     ;now the arr is sorted
@@ -178,7 +180,7 @@ main PROC
     
     ;print line feed
     mov ah, 2
-    mov dl, lf
+    mov dx, lf
     int 21h
 
     ;initialize
@@ -211,10 +213,12 @@ main PROC
             jmp right_pivot_bin_search 
 
         right_pivot_bin_search:
+            shr bx, 1
             inc bx
             mov lower, bx
             jmp search_top
         left_pivot_bin_search:
+            shr bx,1
             dec bx
             mov higher, bx
             jmp search_top 
@@ -223,7 +227,7 @@ main PROC
             ;bx has 2 * the index
             shr bx, 1
             ;print msg
-            mov dl, offset success_msg
+            mov dx, offset success_msg
             mov ah, 9
             int 21h
 
@@ -236,7 +240,7 @@ main PROC
 
             jmp end_bin_search
         not_found_in_search:
-            mov dl, offset fail_msg
+            mov dx, offset fail_msg
             mov ah, 9
             int 21h
             jmp end_bin_search
