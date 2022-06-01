@@ -5,6 +5,7 @@
     lf equ 0ah
     size_msg db "size of the array: $"
     prompt_msg db "enter the numbers: $"
+    sorted_msg db "the sorted array is: $"
     search_msg db "number to search: $"
     success_msg db "found position: $"
     fail_msg db "not found$"
@@ -15,6 +16,7 @@
     higher dw ?
     lower dw ?
     arr dw 20 dup(0)
+    flag db 0
 .code
 ;main function
 main PROC
@@ -43,7 +45,7 @@ main PROC
     mov ah, 9
     mov dx, offset prompt_msg
     int 21h
-    mov dl, offset nl
+    mov dx, offset nl
     int 21h
     
     ;this takes n numbers
@@ -70,15 +72,22 @@ main PROC
     ;sort the array using insertion sort
     call insertion_sort
 
+    ;print sorted array message
+    mov ah, 9
+    mov dx, offset sorted_msg
+    int 21h
+    mov dx, offset nl
+    int 21h
+
     mov cx, n                           ;cx = n
     print_top:
         push cx                         ;save cx i for later
-
         ;find the index of the number
         mov bx, n                       ;bx = n
         sub bx, cx                      ;bx = n - i
         add bx, bx                      ;bx = 2 * (n - i)
-        mov ax, arr[bx]                 ;ax = arr[n - i]
+        mov ax, arr[bx]                 ;ax = arr[n - i] 
+                                        ;as the value is word we need to multiply bx twice
         call print_integer              ;print the number
         mov ah, 2
         mov dl, ' '
@@ -86,36 +95,40 @@ main PROC
         pop cx                          ;cx = i
         loop print_top
 
-    
-    ;print line feed
-    mov ah, 2
-    mov dx, lf
-    int 21h
-    mov dx, cr
-    int 21h
-    ;print 
-    
+    ;binary search jump point
+    binary_search_jmp:
+        ;while(1)
+        ;print new line                 
+        mov ah, 2
+        mov dx, lf
+        int 21h
+        mov dx, cr
+        int 21h
+        ;print 
+        
+        
 
-    ;print prompt message
-    mov ah, 9
-    mov dx, offset search_msg
-    int 21h
+        ;print prompt message
+        mov ah, 9
+        mov dx, offset search_msg
+        int 21h
 
-    ;now the arr is sorted
-    xor bx, bx
+        ;now the arr is sorted
+        xor bx, bx
 
-    ;take input search_val
-    call take_input
-    mov search_val, bx          ;search_val = bx = taken input
-    
-    ;print line feed
-    mov ah, 2
-    mov dx, lf
-    int 21h
+        ;take input search_val
+        call take_input
+        mov search_val, bx          ;search_val = bx = taken input
+        
+        ;print line feed
+        mov ah, 2
+        mov dx, lf
+        int 21h
 
 
-    ;find the position of the search_val in the array using binary search
-    call bin_search
+        ;find the position of the search_val in the array using binary search
+        call bin_search
+    jmp binary_search_jmp            ;jump to binary search
       
     ;return to dos
     mov ah, 4ch
@@ -238,40 +251,84 @@ bin_search ENDP
 ;this function takes the integer input from the user to bx
 take_input PROC
     xor bx, bx                          ;make bx zero
-    start_n:
-        mov ah, 1                       ;get the input
-        int 21h
-        ;now the number is in al
-        cmp al, cr                      ;if al == cr
-        je end_n                        ;jump to end_n
-        cmp al, lf                      ;if al == lf
-        je end_n                        ;jump to end_n
-        
-        ;now al has proper value
+    mov flag, 0                         ;make flag zero
+    mov ah, 1
+    int 21h
+    cmp al, '-'                         ;if al is '-'
+    jne no_minus                        ;jump to no_minus
+    ;if al is '-'
+    mov flag, -1
+    jmp start_n
+    no_minus:
+        ;if al is not '-' add the value of al to bx in decimal form
         and ax, 000fh                   ;make ax contain the decimal interpretation of al
-        mov cx, ax                      ;save the value  to cx
-        mov ax, 10                      ;make ax 10
-        mul bx                          ;bx = bx * 10
-        add ax, cx                      ;bx = bx + cx
-        mov bx, ax                      ;save the value of ax to bx
-        jmp start_n                     ;jump to start_n
-    end_n:
+            mov cx, ax                      ;save the value  to cx
+            mov ax, 10                      ;make ax 10
+            mul bx                          ;bx = bx * 10
+            add ax, cx                      ;bx = bx + cx
+            mov bx, ax
+        start_n:
+            mov ah, 1                       ;get the input
+            int 21h
+            ;now the number is in al
+            cmp al, cr                      ;if al == cr
+            je end_n                        ;jump to end_n
+            cmp al, lf                      ;if al == lf
+            je end_n                        ;jump to end_n
+            
+            ;now al has proper value
+            and ax, 000fh                   ;make ax contain the decimal interpretation of al
+            mov cx, ax                      ;save the value  to cx
+            mov ax, 10                      ;make ax 10
+            mul bx                          ;bx = bx * 10
+            add ax, cx                      ;bx = bx + cx
+            mov bx, ax                      ;save the value of ax to bx
+            jmp start_n                     ;jump to start_n
+        end_n:
+            ;check if the value of dx is -1
+            cmp flag, -1
+            je negative_number
+            jmp positive_number
+        negative_number:
+            ;if the value of dx is -1
+            ;make bx negative
+            neg bx
+            jmp end_take_input
+        positive_number:
+            ;if the value of dx is not -1
+            ;make bx positive
+            jmp end_take_input
+    end_take_input:
+    
     ret                                 ;return to caller
 take_input ENDP
 
 ;this function prints the integer value specified by ax
 print_integer PROC
-    lea si, number_str
-    add si, 5
-    print_loop:
-        dec si
-        xor dx, dx
-        mov cx, 10
-        div cx
-        add dl, '0'
-        mov [si], dl
-        cmp ax, 0
-        jne print_loop
+    ;compare if the value of ax is less than zero
+    cmp ax, 0
+    jge pos_number
+    ;if the value of ax is less than zero
+    ;make ax positive
+    ;print character '-'
+    mov cx, ax              ;save the value of ax to cx
+    mov ah, 2
+    mov dl, '-'
+    int 21h
+    mov ax, cx              ;restore the value of ax to cx
+    neg ax
+    pos_number:
+        lea si, number_str
+        add si, 5
+        print_loop:
+            dec si
+            xor dx, dx
+            mov cx, 10
+            div cx
+            add dl, '0'
+            mov [si], dl
+            cmp ax, 0
+            jne print_loop
 
     ;print the string
     mov ah, 9
