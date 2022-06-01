@@ -34,6 +34,8 @@ main PROC
 
                                     
     call take_input                     ;take input to bx
+    cmp bx, 0
+    jle end_main                        ;if 0, end
     mov n, bx                           ;n = bx
 
     ;print line feed
@@ -235,7 +237,8 @@ bin_search PROC
             int 21h                     
 
             ;print the index
-            mov ax, bx
+            mov ax, bx              ;ax = bx = o based indexing
+            inc ax                  ;ax = bx + 1 now it has 1 based indexing
             call print_integer      ;print the index of the number in integer form
             jmp end_bin_search      ;jump to end_bin_search
         not_found_in_search:
