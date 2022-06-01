@@ -131,7 +131,8 @@ main PROC
         ;find the position of the search_val in the array using binary search
         call bin_search
     jmp binary_search_jmp            ;jump to binary search
-      
+    ;end of main
+end_main:
     ;return to dos
     mov ah, 4ch
     int 21h
