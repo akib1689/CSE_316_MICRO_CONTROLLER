@@ -43,7 +43,7 @@ main PROC
     mov ah, 9
     mov dx, offset prompt_msg
     int 21h
-    mov dl, nl
+    mov dl, offset nl
     int 21h
     
     ;this takes n numbers
@@ -79,13 +79,20 @@ main PROC
         sub bx, cx                      ;bx = n - i
         add bx, bx                      ;bx = 2 * (n - i)
         mov ax, arr[bx]                 ;ax = arr[n - i]
+        call print_integer              ;print the number
+        mov ah, 2
+        mov dl, ' '
+        int 21h
+        pop cx                          ;cx = i
+        loop print_top
 
     
     ;print line feed
     mov ah, 2
     mov dx, lf
     int 21h
-
+    mov dx, cr
+    int 21h
     ;print 
     
 
@@ -216,7 +223,7 @@ bin_search PROC
 
             ;print the index
             mov ax, bx
-            call print_number       ;print the index of the number in integer form
+            call print_integer      ;print the index of the number in integer form
             jmp end_bin_search      ;jump to end_bin_search
         not_found_in_search:
             ;not found
@@ -268,7 +275,7 @@ print_integer PROC
 
     ;print the string
     mov ah, 9
-    mov dx, [si]
+    mov dx, si
     int 21h
     ret
     
