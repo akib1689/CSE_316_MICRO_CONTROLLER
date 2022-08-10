@@ -7,7 +7,7 @@
 class Joystick 
 {
 	public:
-        Joystick(int pinX, int pinY, int pinSW) : m_pinX(pinX), m_pinY(pinY), m_pinSW(pinSW) {
+        Joystick(int pinX, int pinY, int pinSW, bool reversed) : m_pinX(pinX), m_pinY(pinY), m_pinSW(pinSW), m_reversed(reversed) {}
             pinMode(m_pinX,INPUT);
             pinMode(m_pinY,INPUT);
             pinMode(m_pinSW,INPUT);
@@ -18,11 +18,17 @@ class Joystick
         }
 		//get X axis reading
 		int getX(){
-            return joyX->read();
+            if (m_reversed)
+                return 1024-joyX->read();
+            else
+                return joyX->read();
         }
 		//get Y axis reading
 		int getY(){
-            return joyY->read();
+            if (m_reversed)
+                return 1024-joyY->read();
+            else
+                return joyY->read();
         }
 		//return indication on joystick press
 		//The joystick assembly button is '0' when not pressed, so we flip the button logic
@@ -32,6 +38,7 @@ class Joystick
 		
 	private:
 		int m_pinX, m_pinY, m_pinSW;
+        bool m_reversed;
 		AnalogReader *joyX;
 		AnalogReader *joyY;
 		Button		 *joySW;

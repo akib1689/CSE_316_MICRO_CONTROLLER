@@ -16,8 +16,8 @@
 // Global variables and defines
 
 // object initialization
-Joystick joystick_1(JOYSTICK_1_PIN_VRX,JOYSTICK_1_PIN_VRY,JOYSTICK_1_PIN_SW);
-Joystick joystick_2(JOYSTICK_2_PIN_VRX,JOYSTICK_2_PIN_VRY,JOYSTICK_2_PIN_SW);
+Joystick joystick_1(JOYSTICK_1_PIN_VRX,JOYSTICK_1_PIN_VRY,JOYSTICK_1_PIN_SW, false);
+Joystick joystick_2(JOYSTICK_2_PIN_VRX,JOYSTICK_2_PIN_VRY,JOYSTICK_2_PIN_SW, true);
 
 
 // define vars for testing menu
